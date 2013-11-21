@@ -292,7 +292,7 @@ module zbt_6111_sample(beep, audio_reset_b,
 /*
    assign ram1_data = 36'hZ; 
    assign ram1_address = 19'h0;
-   assign ram1_adv_ld = 1'b0;
+   assign ram1_we_b = 1'b1;   
    assign ram1_clk = 1'b0;
    
    //These values has to be set to 0 like ram0 if ram1 is used.
@@ -300,7 +300,8 @@ module zbt_6111_sample(beep, audio_reset_b,
 */
    assign ram1_ce_b = 1'b0;
    assign ram1_oe_b = 1'b0;
-   assign ram1_we_b = 1'b0;
+
+   assign ram1_adv_ld = 1'b0;
    assign ram1_bwe_b = 4'h0;
 
    // clock_feedback_out will be assigned by ramclock
@@ -518,7 +519,7 @@ module zbt_6111_sample(beep, audio_reset_b,
    // ZBT bank 0 we/write data
    // Adding condition to we such that check for swtich[3]
    wire 	my_we = !switch[3] ? sw_ntsc ? (hcount[0]==1'd1) : blank : 0;
-   wire [18:0] 	write_addr = sw_ntsc ? ntsc_addr : vram_pat_addrx;
+   wire [18:0] 	write_addr = sw_ntsc ? ntsc_addr : vram_pat_addr;
    wire [35:0] 	write_data = sw_ntsc ? ntsc_data : vpat;
 
 //   wire 	write_enable = sw_ntsc ? (my_we & ntsc_we) : my_we;
@@ -534,9 +535,9 @@ module zbt_6111_sample(beep, audio_reset_b,
    //if switch[3]
    wire 	my_we1 = switch[3] ? sw_ntsc ? (hcount[0]==1'd1) : blank : 0;
 
-   assign vram_vga_addr = my_we1 ? write_addr : vram_vga_addr;
-   assign vram_we = my_we1;
-   assign vram_write_data = write_data;
+   assign vram_addr1 = my_we1 ? write_addr : vram_vga_addr;
+   assign vram_we1 = my_we1;
+   assign vram_write_data1 = write_data;
    
 
    // select output pixel data
