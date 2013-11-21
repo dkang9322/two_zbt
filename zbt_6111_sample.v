@@ -288,6 +288,8 @@ module zbt_6111_sample(beep, audio_reset_b,
 
 /**********/
 
+/* Changed lines below to enable ZBT RAM bank1 */
+/*
    assign ram1_data = 36'hZ; 
    assign ram1_address = 19'h0;
    assign ram1_adv_ld = 1'b0;
@@ -295,10 +297,11 @@ module zbt_6111_sample(beep, audio_reset_b,
    
    //These values has to be set to 0 like ram0 if ram1 is used.
    assign ram1_cen_b = 1'b1;
-   assign ram1_ce_b = 1'b1;
-   assign ram1_oe_b = 1'b1;
-   assign ram1_we_b = 1'b1;
-   assign ram1_bwe_b = 4'hF;
+*/
+   assign ram1_ce_b = 1'b0;
+   assign ram1_oe_b = 1'b0;
+   assign ram1_we_b = 1'b0;
+   assign ram1_bwe_b = 4'h0;
 
    // clock_feedback_out will be assigned by ramclock
    // assign clock_feedback_out = 1'b0;  //2011-Nov-10
