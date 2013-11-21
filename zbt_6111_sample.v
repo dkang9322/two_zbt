@@ -468,10 +468,12 @@ module zbt_6111_sample(beep, audio_reset_b,
    //Potential Editing Needed
    // generate pixel value from reading ZBT memory
    wire [17:0] 	vr_pixel;
-   wire [18:0] 	vram_addr1;
+   wire [18:0] 	vram_vga_addr;
 
+   //Need to expand definintion of vram_display
    vram_display vd1(reset,clk,hcount,vcount,vr_pixel,
-		    vram_addr1,vram_read_data);
+		    vram_vga_addr,vram_read_data, vram_read_data1,
+		    switch[2]);
 
    // ADV7185 NTSC decoder interface code
    // adv7185 initialization module
@@ -503,7 +505,7 @@ module zbt_6111_sample(beep, audio_reset_b,
    reg [31:0] 	count;
    always @(posedge clk) count <= reset ? 0 : count + 1;
 
-   wire [18:0] 	vram_addr2 = count[0+18:0];
+   wire [18:0] 	vram_pat_addr = count[0+18:0];
    wire [35:0] 	vpat = ( switch[1] ? {4{count[3+3:3],4'b0}}
 			 : {4{count[3+4:4],4'b0}} );
 
@@ -516,14 +518,14 @@ module zbt_6111_sample(beep, audio_reset_b,
    // ZBT bank 0 we/write data
    // Adding condition to we such that check for swtich[3]
    wire 	my_we = !switch[3] ? sw_ntsc ? (hcount[0]==1'd1) : blank : 0;
-   wire [18:0] 	write_addr = sw_ntsc ? ntsc_addr : vram_addr2;
+   wire [18:0] 	write_addr = sw_ntsc ? ntsc_addr : vram_pat_addrx;
    wire [35:0] 	write_data = sw_ntsc ? ntsc_data : vpat;
 
 //   wire 	write_enable = sw_ntsc ? (my_we & ntsc_we) : my_we;
-//   assign 	vram_addr = write_enable ? write_addr : vram_addr1;
+//   assign 	vram_addr = write_enable ? write_addr : vram_vga_addr;
 //   assign 	vram_we = write_enable;
 
-   assign 	vram_addr = my_we ? write_addr : vram_addr1;
+   assign 	vram_addr = my_we ? write_addr : vram_vga_addr;
    assign 	vram_we = my_we;
    assign 	vram_write_data = write_data;
 
@@ -532,7 +534,7 @@ module zbt_6111_sample(beep, audio_reset_b,
    //if switch[3]
    wire 	my_we1 = switch[3] ? sw_ntsc ? (hcount[0]==1'd1) : blank : 0;
 
-   assign vram_addr1 = my_we1 ? write_addr : vram_addr1;
+   assign vram_vga_addr = my_we1 ? write_addr : vram_vga_addr;
    assign vram_we = my_we1;
    assign vram_write_data = write_data;
    
@@ -706,7 +708,8 @@ endmodule */
 
 
 module vram_display(reset,clk,hcount,vcount,vr_pixel,
-		    vram_addr,vram_read_data);
+		    vram_addr,vram_read_data, vram_read_data1,
+		    ram1disp);
 
    input reset, clk;
    input [10:0] hcount;
@@ -714,6 +717,9 @@ module vram_display(reset,clk,hcount,vcount,vr_pixel,
    output [17:0] vr_pixel;
    output [18:0] vram_addr;
    input [35:0]  vram_read_data;
+   input [35:0]  vram_read_data1; // ZBT bank 1 read data
+   input 	 ram1disp; // if 1, display from ZBT bank 1
+   
 
    //forecast hcount & vcount 8 clock cycles ahead to get data from ZBT
    wire [10:0] hcount_f = (hcount >= 1048) ? (hcount - 1048) : (hcount + 8);
@@ -732,7 +738,7 @@ module vram_display(reset,clk,hcount,vcount,vr_pixel,
      last_vr_data <= (hc4[0]==1'd1) ? vr_data_latched : last_vr_data;
 
    always @(posedge clk)
-     vr_data_latched <= (hc4[0]==1'd0) ? vram_read_data : vr_data_latched;
+     vr_data_latched <= (hc4[0]==1'd0) ? (ram1disp ? vram_read_data1 : vram_read_data) : vr_data_latched;
 
    always @(*)		// each 36-bit word from RAM is decoded to 2 18-bits
      case (hc4[0])
